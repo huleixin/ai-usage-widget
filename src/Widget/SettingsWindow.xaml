@@ -1,0 +1,30 @@
+<Window x:Class="CodexUsageWidgetApp.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AI 用量浮窗 · 设置" Width="500" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen" Background="#F5F6F7" Foreground="#304250" Topmost="True">
+    <Window.Resources>
+        <Style TargetType="Button"><Setter Property="Padding" Value="12,6"/><Setter Property="Margin" Value="0,0,8,0"/></Style>
+        <Style TargetType="TextBox"><Setter Property="Padding" Value="8,6"/></Style>
+    </Window.Resources>
+    <StackPanel Margin="24">
+        <TextBlock Text="让用量，留在眼前。" FontSize="23" FontWeight="SemiBold"/>
+        <TextBlock Margin="0,8,0,22" Text="先连接你自己的账户。两项可以单独使用。" Foreground="#657785"/>
+        <TextBlock Text="Codex" FontSize="15" FontWeight="SemiBold"/>
+        <TextBlock Margin="0,6,0,8" TextWrapping="Wrap" Text="已安装并登录 Codex 时会自动查找；也可以手动选择 codex.exe。需使用 ChatGPT 账号登录 Codex，API Key 登录不提供订阅额度。"/>
+        <DockPanel><Button DockPanel.Dock="Right" Content="浏览…" Click="Browse_Click" Margin="8,0,0,0"/><TextBox x:Name="CodexPathBox" ToolTip="留空自动查找"/></DockPanel>
+        <TextBlock Text="留空即可自动查找。找不到时，请先安装 Codex CLI。" Margin="0,6,0,6" Foreground="#657785" FontSize="11"/>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+            <Button Content="安装说明" Click="CodexDocs_Click"/><Button Content="登录 Codex" Click="Login_Click"/>
+        </StackPanel>
+        <TextBlock Text="DeepSeek API（可选）" FontSize="15" FontWeight="SemiBold"/>
+        <PasswordBox x:Name="ApiKeyBox" Padding="8,7" Margin="0,8,0,6" ToolTip="输入自己的 DeepSeek API Key；留空保留已保存密钥"/>
+        <TextBlock x:Name="KeyStatus" TextWrapping="Wrap" Foreground="#657785" FontSize="11"/>
+        <CheckBox x:Name="RemoveKeyBox" Content="清除浮窗保存的 DeepSeek 密钥" Margin="0,8,0,14"/>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,16"><TextBlock Text="刷新间隔（秒）" VerticalAlignment="Center"/><TextBox x:Name="RefreshBox" Width="70" Margin="12,0,0,0"/><TextBlock Text="30–3600" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="#657785"/></StackPanel>
+        <CheckBox x:Name="StartupBox" Content="登录 Windows 后自动启动" Margin="0,0,0,16"/>
+        <TextBlock TextWrapping="Wrap" Text="密钥仅保存到本机 Windows 凭据管理器，查询余额时发往 DeepSeek 官方接口。Codex 登录由官方客户端完成。" FontSize="11" Foreground="#657785"/>
+        <TextBlock x:Name="ErrorText" TextWrapping="Wrap" Foreground="#A34242" Margin="0,10,0,0"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0"><Button Content="取消" IsCancel="True"/><Button Content="保存并使用" IsDefault="True" Click="Save_Click" Margin="0"/></StackPanel>
+    </StackPanel>
+</Window>

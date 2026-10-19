@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>AIUsageWidget</AssemblyName>
+    <Product>AI Usage Widget</Product>
+    <Description>Private local desktop usage widget for Codex and DeepSeek</Description>
+    <Version>1.0.0</Version>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <PathMap>$(MSBuildProjectDirectory)=/src/Widget</PathMap>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="..\NativeGlass\LiquidGlassNative.dll" Link="LiquidGlassNative.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Always" />
+    <Content Include="..\..\scripts\Get-CodexUsage.ps1" Link="Get-CodexUsage.ps1" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Always" />
+  </ItemGroup>
+  <Target Name="BuildNativeGlass" BeforeTargets="PrepareForBuild"
+          Inputs="$(MSBuildThisFileDirectory)..\NativeGlass\LiquidGlassNative.cpp;$(MSBuildThisFileDirectory)..\NativeGlass\build-native.cmd"
+          Outputs="$(MSBuildThisFileDirectory)..\NativeGlass\LiquidGlassNative.dll">
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\NativeGlass\build-native.cmd&quot;" WorkingDirectory="$(MSBuildThisFileDirectory)..\NativeGlass" />
+  </Target>
+</Project>
