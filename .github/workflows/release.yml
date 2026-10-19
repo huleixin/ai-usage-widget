@@ -31,4 +31,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $files = Get-ChildItem artifacts -File | Where-Object Extension -in '.zip', '.sha256' | ForEach-Object FullName
+          gh release view $env:GITHUB_REF_NAME *> $null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host 'Release already exists; preserving the published assets.'
+            exit 0
+          }
           gh release create $env:GITHUB_REF_NAME @files --title "AI Usage Widget $env:GITHUB_REF_NAME" --generate-notes
