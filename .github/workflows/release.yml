@@ -3,6 +3,11 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Optional release tag, e.g. v1.0.0. Leave empty to build artifacts only.'
+        required: false
+        default: ''
 permissions:
   contents: write
 jobs:
@@ -15,8 +20,10 @@ jobs:
           dotnet-version: '8.0.x'
       - name: Build portable package
         shell: pwsh
+        env:
+          REQUESTED_TAG: ${{ inputs.release_tag }}
         run: |
-          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME.TrimStart('v') } else { '1.0.0' }
+          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME.TrimStart('v') } elseif ($env:REQUESTED_TAG) { $env:REQUESTED_TAG.TrimStart('v') } else { '1.0.0' }
           ./scripts/Publish.ps1 -Version $version
       - uses: actions/upload-artifact@v4
         with:
@@ -25,15 +32,18 @@ jobs:
             artifacts/*.zip
             artifacts/*.sha256
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUESTED_TAG: ${{ inputs.release_tag }}
         run: |
+          $tag = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { $env:REQUESTED_TAG }
+          if ($tag -notmatch '^v\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$') { throw 'Invalid release tag.' }
           $files = Get-ChildItem artifacts -File | Where-Object Extension -in '.zip', '.sha256' | ForEach-Object FullName
-          gh release view $env:GITHUB_REF_NAME *> $null
+          gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
             Write-Host 'Release already exists; preserving the published assets.'
             exit 0
           }
-          gh release create $env:GITHUB_REF_NAME @files --title "AI Usage Widget $env:GITHUB_REF_NAME" --generate-notes
+          gh release create $tag @files --title "AI Usage Widget $tag" --generate-notes
