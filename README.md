@@ -8,7 +8,7 @@ Windows 桌面上的小巧玻璃浮窗，集中显示 Codex 的 5 小时／每�
 
 ## 下载与启动
 
-1. 在 [Releases](https://github.com/huleixin/ai-usage-widget/releases/latest) 下载 `AIUsageWidget-v1.0.0-win-x64.zip`（以后选择相应最新版）。**不要下载 Source code 来直接运行。**
+1. 在 [Releases](https://github.com/huleixin/ai-usage-widget/releases/latest) 下载 `AIUsageWidget-v1.0.1-win-x64.zip`（以后选择相应最新版）。**不要下载 Source code 来直接运行。**
 2. 解压到一个固定文件夹，例如「文档 / AIUsageWidget」。不要直接在压缩包中运行。
 3. 双击 `AIUsageWidget.exe`。发行包自带 .NET 运行组件，无需另外安装 .NET 或 Visual Studio。
 4. 首次启动会打开配置页。连接自己的 Codex；需要 DeepSeek 时，再填写自己的 API Key。点击「保存并使用」。

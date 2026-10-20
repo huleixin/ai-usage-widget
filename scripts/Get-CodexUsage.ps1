@@ -1,6 +1,39 @@
 ﻿param([string]$CodexPath, [Parameter(Mandatory=$true)][string]$OutputPath)
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+function Find-CodexExecutable([string]$PreferredPath) {
+    # Explorer/startup does not inherit the Codex app's extra PATH entries.
+    if ($PreferredPath -and (Test-Path -LiteralPath $PreferredPath -PathType Leaf) -and $PreferredPath.EndsWith('.exe', [StringComparison]::OrdinalIgnoreCase)) {
+        return (Get-Item -LiteralPath $PreferredPath).FullName
+    }
+    $command = Get-Command codex.exe -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($command -and (Test-Path -LiteralPath $command.Source -PathType Leaf)) { return $command.Source }
+    $localData = [Environment]::GetFolderPath('LocalApplicationData')
+    $desktopBin = Join-Path $localData 'OpenAI\Codex\bin'
+    if (Test-Path -LiteralPath $desktopBin -PathType Container) {
+        $bundled = Get-ChildItem -LiteralPath $desktopBin -Filter codex.exe -Recurse -File -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+        if ($bundled) { return $bundled.FullName }
+    }
+    $roamingData = [Environment]::GetFolderPath('ApplicationData')
+    $npmScope = Join-Path $roamingData 'npm\node_modules\@openai'
+    if (Test-Path -LiteralPath $npmScope -PathType Container) {
+        foreach ($package in Get-ChildItem -LiteralPath $npmScope -Directory -Filter 'codex*' -ErrorAction SilentlyContinue) {
+            $native = Get-ChildItem -LiteralPath $package.FullName -Filter codex.exe -Recurse -File -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($native) { return $native.FullName }
+        }
+    }
+    foreach ($directory in @([Environment]::GetEnvironmentVariable('PATH', 'User'), [Environment]::GetEnvironmentVariable('PATH', 'Machine'))) {
+        foreach ($entry in ($directory -split ';')) {
+            if ([string]::IsNullOrWhiteSpace($entry)) { continue }
+            try {
+                $candidate = Join-Path $entry.Trim().Trim('"') 'codex.exe'
+                if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+            } catch { }
+        }
+    }
+    return $null
+}
 function Send-Line($Writer, $Object) {
     $Writer.WriteLine(($Object | ConvertTo-Json -Depth 12 -Compress))
     $Writer.Flush()
@@ -23,10 +56,7 @@ function Read-Response($Reader, [int]$ExpectedId, [int]$TimeoutSeconds = 18) {
 $payload = [ordered]@{ Session = $null; Weekly = $null }
 $process = $null
 try {
-    if ([string]::IsNullOrWhiteSpace($CodexPath)) {
-        $command = Get-Command codex.exe -ErrorAction SilentlyContinue
-        if ($command) { $CodexPath = $command.Source }
-    }
+    $CodexPath = Find-CodexExecutable $CodexPath
     if (-not $CodexPath -or -not (Test-Path -LiteralPath $CodexPath -PathType Leaf)) {
         throw '未找到 codex.exe，请在设置中选择路径或先安装 Codex CLI。'
     }
@@ -43,7 +73,7 @@ try {
     Send-Line $process.StandardInput ([ordered]@{
         method = 'initialize'; id = 1
         params = @{
-            clientInfo = @{ name = 'ai_usage_widget'; title = 'AI Usage Widget'; version = '1.0.0' }
+            clientInfo = @{ name = 'ai_usage_widget'; title = 'AI Usage Widget'; version = '1.0.1' }
             capabilities = @{ experimentalApi = $true }
         }
     })
